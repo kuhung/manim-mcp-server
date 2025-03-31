@@ -109,6 +109,10 @@ This MCP server is licensed under the MIT License. This means you are free to us
 
 Created by **[abhiemj](https://github.com/abhiemj)**. Contributions welcome! 🚀
 
+### **Listed in Awesome MCP Servers**  
+This repository is featured in the [Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers) repository under the **Animation & Video** category. Check it out along with other great MCP server implementations!
+
+
 ## **Acknowledgments**  
 - Thanks to the [Manim Community](https://www.manim.community/) for their amazing animation library.  
 - Inspired by the open-source MCP ecosystem.
