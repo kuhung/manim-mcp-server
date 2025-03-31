@@ -40,6 +40,27 @@ git clone https://github.com/abhiemj/manim-mcp-server.git
 cd manim-mcp-server
 ```
 
+### Set the `MANIM_EXECUTABLE` Environment Variable
+
+After cloning the repository, set the `MANIM_EXECUTABLE` environment variable to ensure Manim can be executed properly:
+
+#### Windows (PowerShell):
+```sh
+$env:MANIM_EXECUTABLE="C:\path\to\manim.exe"
+```
+
+#### Windows (Command Prompt):
+```sh
+set MANIM_EXECUTABLE=C:\path\to\manim.exe
+```
+
+#### Linux/macOS (Terminal):
+```sh
+export MANIM_EXECUTABLE=/path/to/manim
+```
+
+To make this change persistent, add the export command to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.).
+
 ## Integration with Claude
 
 To integrate the Manim MCP server with Claude, add the following to your `claude_desktop_config.json` file:
@@ -51,7 +72,10 @@ To integrate the Manim MCP server with Claude, add the following to your `claude
       "command": "/absolute/path/to/python",
       "args": [
         "/absolute/path/to/manim-mcp-server/manim_server.py"
-      ]
+      ],
+      "env": {
+        "MANIM_EXECUTABLE": "/Users/[Your_username]/anaconda3/envs/manim2/Scripts/manim.exe"
+      }
     }
   }
 }
