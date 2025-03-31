@@ -1,5 +1,8 @@
 # Manim MCP Server
 
+![Manim MCP Demo](Demo-manim-mcp.gif)
+
+
 ## Overview
 
 This is an MCP (Multi-Modal Command Processor) server that executes Manim animation code and returns the generated video. It allows users to send Manim scripts and receive the rendered animation.
