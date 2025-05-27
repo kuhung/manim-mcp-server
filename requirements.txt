@@ -2,5 +2,9 @@
 mcp>=1.0.0
 manim>=0.17.0
 
-# Optional development dependencies
-# Install with: pip install -r requirements.txt -r requirements-dev.txt 
+# Installation options:
+# 1. Using uv (recommended, fast):
+#    uv sync
+# 
+# 2. Using pip (traditional):
+#    pip install -r requirements.txt -r requirements-dev.txt 

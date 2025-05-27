@@ -25,34 +25,66 @@
 
 ### 前提条件
 
-- Python 3.8 或更高版本
+- Python 3.10 或更高版本
 - Manim Community Edition
 - MCP Python SDK
 
-### 快速安装
+### 🚀 快速安装（推荐使用 uv）
+
+#### 一键设置脚本（最简单）
 
 ```bash
 # 克隆仓库
 git clone https://github.com/abhiemj/manim-mcp-server.git
 cd manim-mcp-server
 
-# 安装核心依赖
-pip install -r requirements.txt
+# 运行快速设置脚本（自动安装 UV 和依赖）
+bash scripts/setup-uv.sh
+```
 
-# 安装开发依赖（可选）
+#### 手动安装
+
+```bash
+# 安装 uv（现代化Python包管理器）
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 克隆仓库
+git clone https://github.com/abhiemj/manim-mcp-server.git
+cd manim-mcp-server
+
+# 同步所有依赖（包括开发依赖）
+uv sync
+
+# 激活虚拟环境
+source .venv/bin/activate
+```
+
+### 传统安装方式
+
+```bash
+# 克隆仓库
+git clone https://github.com/abhiemj/manim-mcp-server.git
+cd manim-mcp-server
+
+# 创建虚拟环境
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# venv\Scripts\activate   # Windows
+
+# 安装依赖
+pip install -r requirements.txt
 pip install -r requirements-dev.txt
 ```
 
 ### 开发环境安装
 
 ```bash
-# 以开发模式安装
+# 使用 uv（推荐，极快）
+uv sync --dev
+uv run pre-commit install
+
+# 或者使用 pip
 pip install -e .
-
-# 使用 uv（推荐）
-uv pip install -e .
-
-# 设置 pre-commit 钩子（推荐）
 pre-commit install
 ```
 
@@ -84,14 +116,18 @@ python src/server.py --help
 ### 运行服务器
 
 ```bash
-# 直接运行
+# 使用 uv（推荐）
+uv run python src/server.py
+
+# 或者激活虚拟环境后运行
+source .venv/bin/activate  # uv创建的虚拟环境
 python src/server.py
 
 # 作为模块运行
-python -m src
+uv run python -m src
 
 # 如果已安装，可以使用命令行工具
-manim-mcp-server
+uv run manim-mcp-server
 ```
 
 ### 基本使用示例
@@ -290,19 +326,19 @@ pre-commit install
 ### 代码质量工具
 
 ```bash
-# 代码格式化
+# 使用 uv 运行代码质量工具（推荐）
+uv run black src/ tests/         # 代码格式化
+uv run isort src/ tests/         # 导入排序
+uv run mypy src/                 # 类型检查
+uv run pytest tests/             # 运行测试
+uv run pre-commit run --all-files # 运行所有检查
+
+# 或者在激活的虚拟环境中运行
+source .venv/bin/activate
 black src/ tests/
-
-# 导入排序
 isort src/ tests/
-
-# 类型检查
 mypy src/
-
-# 运行测试
 pytest tests/
-
-# 运行所有检查
 pre-commit run --all-files
 ```
 

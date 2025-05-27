@@ -5,7 +5,7 @@
 ## 📋 系统要求
 
 ### 最低要求
-- **Python**: 3.8 或更高版本
+- **Python**: 3.10 或更高版本
 - **内存**: 最少 2GB RAM（推荐 4GB+）
 - **存储**: 至少 1GB 可用空间
 - **操作系统**: Windows 10+, macOS 10.14+, Ubuntu 18.04+
@@ -166,20 +166,40 @@ poetry shell
 poetry run python src/server.py
 ```
 
-### 使用 UV（现代化工具）
+### 使用 UV（推荐 - 现代化高速工具）
+
+UV 是一个极快的 Python 包管理器，比 pip 快 10-100 倍！
 
 ```bash
 # 安装 uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 创建和激活虚拟环境
-uv venv
-source .venv/bin/activate  # Linux/macOS
+# 克隆项目后，一键同步所有依赖
+cd manim-mcp-server
+uv sync
 
-# 安装依赖
-uv pip install -r requirements.txt
-uv pip install -e .
+# 激活虚拟环境
+source .venv/bin/activate
+
+# 运行服务器
+uv run python src/server.py
+
+# 安装开发依赖
+uv sync --dev
+
+# 运行开发工具
+uv run pytest tests/
+uv run black src/ tests/
+uv run mypy src/
 ```
+
+#### UV 的优势
+
+- ⚡ **极快速度**: 比 pip 快 10-100 倍
+- 🔒 **依赖锁定**: 自动生成 `uv.lock` 文件
+- 🧹 **清洁环境**: 自动管理虚拟环境
+- 🔄 **兼容性**: 完全兼容 pip 和 pyproject.toml
+- 📦 **内置工具**: 包含 pip、pipx、poetry 等功能
 
 ### Docker 安装
 
@@ -285,23 +305,40 @@ where python
 
 ### 基本功能测试
 
+#### 使用 UV（推荐）
+
 ```bash
 # 进入项目目录
 cd manim-mcp-server
 
-# 激活虚拟环境
-source venv/bin/activate
-
-# 运行测试套件
-pytest tests/ -v
+# 同步依赖并运行测试
+uv sync
+uv run pytest tests/ -v
 
 # 测试代码验证
-python -c "
+uv run python -c "
 from src.server import validate_manim_code
 print('Code validation:', validate_manim_code('from manim import *'))
 "
 
 # 测试 Manim 渲染
+uv run manim -pql examples/basic_animation.py BasicShapes
+
+# 运行服务器
+uv run python src/server.py
+```
+
+#### 传统方式
+
+```bash
+# 激活虚拟环境
+source .venv/bin/activate  # 如果使用 uv
+# 或
+source venv/bin/activate   # 如果使用 pip
+
+# 运行测试
+pytest tests/ -v
+python -c "from src.server import validate_manim_code; print('OK')"
 manim -pql examples/basic_animation.py BasicShapes
 ```
 
