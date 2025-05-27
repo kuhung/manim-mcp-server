@@ -69,13 +69,22 @@ def validate_manim_code(code: str) -> bool:
     return True
 
 
-async def execute_manim_safely(code: str, work_dir: Path) -> Dict[str, Any]:
+async def execute_manim_safely(
+    code: str, 
+    work_dir: Path, 
+    script_dir: Optional[Path] = None,
+    output_dir: Optional[Path] = None,
+    script_name: str = "scene"
+) -> Dict[str, Any]:
     """
     Execute Manim code in a controlled environment.
     
     Args:
         code: The Manim code to execute
         work_dir: Working directory for execution
+        script_dir: Optional custom directory for script file
+        output_dir: Optional custom directory for output videos
+        script_name: Name of the script file (without extension)
         
     Returns:
         Dictionary containing execution results
@@ -83,17 +92,29 @@ async def execute_manim_safely(code: str, work_dir: Path) -> Dict[str, Any]:
     Raises:
         ManimExecutionError: If execution fails
     """
-    script_path = work_dir / "scene.py"
+    # Use custom script directory or default to work_dir
+    actual_script_dir = script_dir if script_dir else work_dir
+    actual_script_dir.mkdir(parents=True, exist_ok=True)
+    
+    script_path = actual_script_dir / f"{script_name}.py"
     
     try:
         # Write the script
         script_path.write_text(code, encoding="utf-8")
         
+        # Build Manim command
+        manim_cmd = [MANIM_EXECUTABLE, "-p"]
+        
+        # Add output directory if specified
+        if output_dir:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            manim_cmd.extend(["--media_dir", str(output_dir)])
+        
+        manim_cmd.append(str(script_path))
+        
         # Execute Manim
         process = await asyncio.create_subprocess_exec(
-            MANIM_EXECUTABLE,
-            "-p",
-            str(script_path),
+            *manim_cmd,
             cwd=str(work_dir),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
@@ -103,11 +124,11 @@ async def execute_manim_safely(code: str, work_dir: Path) -> Dict[str, Any]:
         
         if process.returncode == 0:
             # Find generated videos
-            media_dir = work_dir / "media"
+            search_dir = output_dir if output_dir else (work_dir / "media")
             video_files = []
-            if media_dir.exists():
-                for video_file in media_dir.rglob("*.mp4"):
-                    video_files.append(str(video_file.relative_to(work_dir)))
+            if search_dir.exists():
+                for video_file in search_dir.rglob("*.mp4"):
+                    video_files.append(str(video_file))
             
             return {
                 "success": True,
@@ -115,6 +136,8 @@ async def execute_manim_safely(code: str, work_dir: Path) -> Dict[str, Any]:
                 "stderr": stderr.decode("utf-8"),
                 "video_files": video_files,
                 "work_dir": str(work_dir),
+                "script_path": str(script_path),
+                "output_dir": str(output_dir) if output_dir else str(work_dir / "media"),
             }
         else:
             raise ManimExecutionError(
@@ -146,6 +169,18 @@ async def handle_list_tools() -> List[types.Tool]:
                     "code": {
                         "type": "string",
                         "description": "The Manim Python code to execute. Should contain a Scene class with animation logic.",
+                    },
+                    "script_dir": {
+                        "type": "string",
+                        "description": "Optional custom directory to save the script file. If not provided, uses default temporary directory.",
+                    },
+                    "output_dir": {
+                        "type": "string", 
+                        "description": "Optional custom directory for video output. If not provided, uses default media directory.",
+                    },
+                    "script_name": {
+                        "type": "string",
+                        "description": "Optional custom name for the script file (without extension). Defaults to 'scene'.",
                     }
                 },
                 "required": ["code"],
@@ -170,7 +205,12 @@ async def handle_list_tools() -> List[types.Tool]:
             description="List all generated video files in the media directory",
             inputSchema={
                 "type": "object",
-                "properties": {},
+                "properties": {
+                    "search_dir": {
+                        "type": "string",
+                        "description": "Optional directory to search for videos. If not provided, searches default media directory.",
+                    }
+                },
             },
         ),
     ]
@@ -215,16 +255,25 @@ async def _handle_execute_manim(arguments: Dict[str, Any]) -> List[types.TextCon
     if not code:
         raise ValueError("Missing required argument: code")
     
+    # Get optional custom paths
+    script_dir_str = arguments.get("script_dir")
+    output_dir_str = arguments.get("output_dir")
+    script_name = arguments.get("script_name", "scene")
+    
     # Validate the code
     validate_manim_code(code)
     
-    # Create unique working directory
+    # Create unique working directory (fallback if no custom paths provided)
     work_dir_name = f"manim_work_{uuid.uuid4().hex[:8]}"
     work_dir = BASE_DIR / work_dir_name
     work_dir.mkdir(exist_ok=True)
     
+    # Convert string paths to Path objects
+    script_dir = Path(script_dir_str).expanduser().resolve() if script_dir_str else None
+    output_dir = Path(output_dir_str).expanduser().resolve() if output_dir_str else None
+    
     try:
-        result = await execute_manim_safely(code, work_dir)
+        result = await execute_manim_safely(code, work_dir, script_dir, output_dir, script_name)
         
         if result["success"]:
             video_info = ""
@@ -238,6 +287,8 @@ async def _handle_execute_manim(arguments: Dict[str, Any]) -> List[types.TextCon
                     type="text",
                     text=(
                         f"✅ Manim execution successful!\n\n"
+                        f"Script saved to: {result['script_path']}\n"
+                        f"Output directory: {result['output_dir']}\n"
                         f"Working directory: {result['work_dir']}\n"
                         f"Output: {result['stdout'][:500]}{'...' if len(result['stdout']) > 500 else ''}"
                         f"{video_info}\n\n"
@@ -302,14 +353,23 @@ async def _handle_cleanup_workspace(arguments: Dict[str, Any]) -> List[types.Tex
 async def _handle_list_videos(arguments: Dict[str, Any]) -> List[types.TextContent]:
     """Handle listing generated videos."""
     try:
+        search_dir_str = arguments.get("search_dir")
         video_files = []
-        for work_dir in BASE_DIR.iterdir():
-            if work_dir.is_dir() and work_dir.name.startswith("manim_work_"):
-                media_dir = work_dir / "media"
-                if media_dir.exists():
-                    for video_file in media_dir.rglob("*.mp4"):
-                        rel_path = video_file.relative_to(BASE_DIR)
-                        video_files.append(str(rel_path))
+        
+        if search_dir_str:
+            # Search in custom directory
+            search_dir = Path(search_dir_str).expanduser().resolve()
+            if search_dir.exists():
+                for video_file in search_dir.rglob("*.mp4"):
+                    video_files.append(str(video_file))
+        else:
+            # Search in default media directories
+            for work_dir in BASE_DIR.iterdir():
+                if work_dir.is_dir() and work_dir.name.startswith("manim_work_"):
+                    media_dir = work_dir / "media"
+                    if media_dir.exists():
+                        for video_file in media_dir.rglob("*.mp4"):
+                            video_files.append(str(video_file))
         
         if video_files:
             video_list = "\n".join(f"- {video}" for video in video_files)
