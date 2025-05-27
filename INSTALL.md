@@ -168,7 +168,7 @@ poetry run python src/server.py
 
 ### 使用 UV（推荐 - 现代化高速工具）
 
-UV 是一个极快的 Python 包管理器，比 pip 快 10-100 倍！
+UV 是一个极快的 Python 包管理器，比 pip 快 10-100 倍！更多关于 UV 的详细介绍、高级用法和配置，请参阅 [UV 使用指南](UV_GUIDE.md)。
 
 ```bash
 # 安装 uv

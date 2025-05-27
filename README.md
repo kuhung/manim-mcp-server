@@ -2,7 +2,7 @@
 
 ![Manim MCP Demo](Demo-manim-mcp.gif)
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io/)
 
@@ -23,15 +23,18 @@
 
 ## 🚀 安装
 
+详细的安装指南，包括系统依赖和多种环境配置，请参阅 [INSTALL.md](INSTALL.md)。
+对于 `uv` 包管理器的详细使用方法，请参阅 [UV 使用指南](UV_GUIDE.md)。
+
 ### 前提条件
 
 - Python 3.10 或更高版本
 - Manim Community Edition
 - MCP Python SDK
 
-### 🚀 快速安装（推荐使用 uv）
+### 快速安装（推荐使用 uv）
 
-#### 一键设置脚本（最简单）
+我们推荐使用 `uv` 进行安装。最简单的方式是使用一键设置脚本：
 
 ```bash
 # 克隆仓库
@@ -41,65 +44,7 @@ cd manim-mcp-server
 # 运行快速设置脚本（自动安装 UV 和依赖）
 bash scripts/setup-uv.sh
 ```
-
-#### 手动安装
-
-```bash
-# 安装 uv（现代化Python包管理器）
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# 克隆仓库
-git clone https://github.com/abhiemj/manim-mcp-server.git
-cd manim-mcp-server
-
-# 同步所有依赖（包括开发依赖）
-uv sync
-
-# 激活虚拟环境
-source .venv/bin/activate
-```
-
-### 传统安装方式
-
-```bash
-# 克隆仓库
-git clone https://github.com/abhiemj/manim-mcp-server.git
-cd manim-mcp-server
-
-# 创建虚拟环境
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# venv\Scripts\activate   # Windows
-
-# 安装依赖
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
-```
-
-### 开发环境安装
-
-```bash
-# 使用 uv（推荐，极快）
-uv sync --dev
-uv run pre-commit install
-
-# 或者使用 pip
-pip install -e .
-pre-commit install
-```
-
-### 验证安装
-
-```bash
-# 检查 Manim 是否正确安装
-manim --version
-
-# 运行测试
-pytest tests/
-
-# 运行服务器测试
-python src/server.py --help
-```
+更多 `uv` 安装选项和传统 `pip` 安装方式，请参见 [INSTALL.md](INSTALL.md)。
 
 ## 🔧 使用方法
 
@@ -115,20 +60,18 @@ python src/server.py --help
 
 ### 运行服务器
 
+推荐使用 `uv` 运行服务器：
 ```bash
 # 使用 uv（推荐）
 uv run python src/server.py
-
-# 或者激活虚拟环境后运行
-source .venv/bin/activate  # uv创建的虚拟环境
-python src/server.py
-
-# 作为模块运行
-uv run python -m src
-
-# 如果已安装，可以使用命令行工具
-uv run manim-mcp-server
 ```
+或者，激活虚拟环境后：
+```bash
+source .venv/bin/activate # Linux/macOS 或 uv 创建的环境
+# .venv\Scripts\activate # Windows
+python src/server.py
+```
+更多运行选项请参见 [INSTALL.md](INSTALL.md)。
 
 ### 基本使用示例
 
@@ -196,65 +139,27 @@ class GeometryAnimation(Scene):
 
 ### 配置文件设置
 
-将以下配置添加到你的 `claude_desktop_config.json` 文件中：
+将以下配置添加到你的 `claude_desktop_config.json` 文件中。请确保将 `/absolute/path/to/manim-mcp-server/src/server.py` 替换为你本地的实际绝对路径。
 
 ```json
 {
   "mcpServers": {
     "manim-server": {
-      "command": "python",
+      "command": "python", // 或你系统中 python3 的可执行文件路径
       "args": [
         "/absolute/path/to/manim-mcp-server/src/server.py"
       ],
       "env": {
-        "MANIM_EXECUTABLE": "manim"
+        "MANIM_EXECUTABLE": "manim" // 或你系统中 manim 的可执行文件路径
       }
     }
   }
 }
 ```
-
-### macOS 配置示例
-
-```json
-{
-  "mcpServers": {
-    "manim-server": {
-      "command": "/usr/local/bin/python3",
-      "args": [
-        "/Users/username/manim-mcp-server/src/server.py"
-      ],
-      "env": {
-        "MANIM_EXECUTABLE": "/usr/local/bin/manim"
-      }
-    }
-  }
-}
-```
-
-### Windows 配置示例
-
-```json
-{
-  "mcpServers": {
-    "manim-server": {
-      "command": "C:\\Python\\python.exe",
-      "args": [
-        "C:\\path\\to\\manim-mcp-server\\src\\server.py"
-      ],
-      "env": {
-        "MANIM_EXECUTABLE": "C:\\path\\to\\manim.exe"
-      }
-    }
-  }
-}
-```
-
-### 环境变量配置
-
-| 变量名 | 描述 | 默认值 | 示例 |
-|--------|------|--------|------|
-| `MANIM_EXECUTABLE` | Manim 可执行文件路径 | `manim` | `/usr/local/bin/manim` |
+**注意**: 
+- `command` 应指向你的 Python 解释器。
+- `MANIM_EXECUTABLE` 应指向 `manim` 的可执行文件。
+根据你的操作系统 (macOS, Windows, Linux) 和 Python/Manim 安装位置，这些路径可能需要调整。详细的特定平台配置示例请参考 [INSTALL.md](INSTALL.md) 中的相关部分或项目文档。
 
 ## 🎯 完整使用流程
 
@@ -301,187 +206,12 @@ manim-mcp-server/
 └── README.md                    # 说明文档
 ```
 
-## 🛠️ 开发指南
+## 🤝 贡献
 
-### 设置开发环境
+我们欢迎各种贡献！如果你想为项目做出贡献，请查看贡献指南（如果未来添加）或直接提交 Pull Request。
+对于开发环境的搭建，请参考 [INSTALL.md](INSTALL.md) 中的开发设置部分或 [UV_GUIDE.md](UV_GUIDE.md)。
 
-```bash
-# 克隆仓库
-git clone https://github.com/abhiemj/manim-mcp-server.git
-cd manim-mcp-server
-
-# 创建虚拟环境
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# venv\Scripts\activate   # Windows
-
-# 安装开发依赖
-pip install -r requirements-dev.txt
-pip install -e .
-
-# 设置 pre-commit
-pre-commit install
-```
-
-### 代码质量工具
-
-```bash
-# 使用 uv 运行代码质量工具（推荐）
-uv run black src/ tests/         # 代码格式化
-uv run isort src/ tests/         # 导入排序
-uv run mypy src/                 # 类型检查
-uv run pytest tests/             # 运行测试
-uv run pre-commit run --all-files # 运行所有检查
-
-# 或者在激活的虚拟环境中运行
-source .venv/bin/activate
-black src/ tests/
-isort src/ tests/
-mypy src/
-pytest tests/
-pre-commit run --all-files
-```
-
-### 添加新功能
-
-1. 创建功能分支
-2. 编写代码和测试
-3. 运行代码质量检查
-4. 提交并创建 Pull Request
-
-## 🔍 故障排除
-
-### 常见问题
-
-#### 1. Manim 未找到
-
-**错误**：`FileNotFoundError: [Errno 2] No such file or directory: 'manim'`
-
-**解决方案**：
-```bash
-# 检查 Manim 安装
-which manim
-
-# 如果未安装，安装 Manim
-pip install manim
-
-# 设置环境变量
-export MANIM_EXECUTABLE=/path/to/manim
-```
-
-#### 2. 权限错误
-
-**错误**：`PermissionError: [Errno 13] Permission denied`
-
-**解决方案**：
-```bash
-# 检查目录权限
-ls -la src/media/
-
-# 修复权限
-chmod 755 src/media/
-```
-
-#### 3. 依赖冲突
-
-**错误**：版本冲突或导入错误
-
-**解决方案**：
-```bash
-# 创建新的虚拟环境
-python -m venv fresh_env
-source fresh_env/bin/activate
-pip install -r requirements.txt
-```
-
-### 调试模式
-
-```bash
-# 启用详细日志
-export PYTHONPATH=$PWD/src
-python -m src --debug
-
-# 检查服务器状态
-python -c "from src.server import server; print(server.get_capabilities())"
-```
-
-### 性能优化
-
-- 使用 SSD 存储临时文件
-- 增加可用内存
-- 使用多核 CPU 进行渲染
-
-## 📚 API 参考
-
-### 工具详细说明
-
-#### execute_manim
-
-执行 Manim 代码并生成动画视频。
-
-**参数**：
-- `code` (string, required): 要执行的 Manim Python 代码
-
-**返回**：
-- 成功：工作目录路径、输出信息、生成的视频文件列表
-- 失败：错误信息
-
-**示例**：
-```python
-{
-  "code": "from manim import *\n\nclass Test(Scene):\n    def construct(self):\n        self.play(Create(Circle()))"
-}
-```
-
-#### cleanup_workspace
-
-清理指定的工作目录。
-
-**参数**：
-- `work_dir` (string, required): 要清理的工作目录路径
-
-**返回**：
-- 清理状态信息
-
-#### list_generated_videos
-
-列出所有生成的视频文件。
-
-**参数**：无
-
-**返回**：
-- 视频文件列表
-
-## 🤝 贡献指南
-
-我们欢迎所有级别的贡献者！
-
-### 贡献流程
-
-1. Fork 仓库
-2. 创建功能分支：
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-3. 提交更改：
-   ```bash
-   git commit -m "Add amazing feature"
-   ```
-4. 推送到分支：
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-5. 创建 Pull Request
-
-### 贡献类型
-
-- 🐛 Bug 修复
-- ✨ 新功能
-- 📚 文档改进
-- 🧪 测试增强
-- 🎨 代码优化
-
-## 📄 许可证
+## 📜 许可证
 
 本项目使用 MIT 许可证 - 查看 [LICENSE.txt](LICENSE.txt) 文件获取详细信息。
 
